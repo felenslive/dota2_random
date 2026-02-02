@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOTA 2 DUO RANDOMIZER</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+
+        :root {
+            --bg-dark: #0f0f0f;
+            --panel-bg: #1a1a1a;
+            --dota-red: #8b0000;
+            --dota-red-bright: #ff2d2d;
+            --text-gold: #c7b074;
+            --text-grey: #a3a3a3;
+            --border-color: #444;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Cinzel', serif;
+            background-color: var(--bg-dark);
+            
+            /* ФОН ИЗ ЛОКАЛЬНОГО ФАЙЛА */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('wallpaper_preview.jpg');
+            
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text-grey);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--text-gold);
+            text-shadow: 0 0 10px rgba(199, 176, 116, 0.3);
+            margin-top: 20px;
+            font-size: 2.5rem;
+            text-align: center;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* --- LAYOUT --- */
+        .main-container {
+            display: flex;
+            gap: 40px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .player-card {
+            background: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-top: 4px solid var(--dota-red);
+            padding: 20px;
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .player-name {
+            font-size: 2rem;
+            color: #fff;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid var(--dota-red);
+            width: 100%;
+            text-align: center;
+            padding-bottom: 10px;
+        }
+
+        /* --- FILTERS --- */
+        .filters {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.85rem; /* Чуть меньше шрифт, чтобы названия ролей влезли */
+            color: var(--text-grey);
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .filter-item:hover {
+            color: #fff;
+        }
+
+        .filter-item input {
+            margin-right: 8px;
+            accent-color: var(--dota-red);
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* --- SLOT MACHINE WINDOW --- */
+        .slot-window {
+            width: 235px;
+            height: 272px;
+            background: #111;
+            border: 3px solid #333;
+            box-shadow: inset 0 0 20px #000;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            background-image: repeating-linear-gradient(45deg, #1a1a1a 0, #1a1a1a 10px, #222 10px, #222 20px);
+        }
+
+        .reel {
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-img {
+            width: 235px;
+            height: 272px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1px solid #000;
+            background: #151515;
+        }
+
+        .hero-name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
+            color: #fff;
+            text-align: center;
+            padding: 15px 0 10px 0;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s;
+            text-shadow: 0 2px 4px #000;
+        }
+
+        .slot-window.finished .hero-name-overlay {
+            opacity: 1;
+        }
+
+        /* --- BUTTONS --- */
+        button {
+            font-family: 'Cinzel', serif;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            border: 1px solid #555;
+            outline: none;
+        }
+
+        .btn-reroll {
+            background: linear-gradient(#3a3a3a, #222);
+            color: #ccc;
+            padding: 10px 30px;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        .btn-reroll:hover {
+            background: linear-gradient(#4a4a4a, #333);
+            color: #fff;
+            border-color: #888;
+        }
+
+        .btn-reroll:active {
+            transform: translateY(2px);
+        }
+
+        .main-controls {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .btn-main {
+            background: linear-gradient(to bottom, #5e0b0b, #2b0000);
+            color: #fff;
+            font-size: 1.5rem;
+            padding: 15px 60px;
+            border: 2px solid #ff4444;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+            letter-spacing: 3px;
+            font-weight: bold;
+        }
+
+        .btn-main:hover {
+            background: linear-gradient(to bottom, #7a1515, #420000);
+            box-shadow: 0 0 25px rgba(255, 68, 68, 0.6);
+            transform: scale(1.05);
+        }
+
+        .btn-main:active {
+            transform: scale(0.95);
+        }
+
+        /* --- CHALLENGE SECTION --- */
+        .challenge-section {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            margin-top: 40px;
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+        }
+
+        .challenge-btn {
+            background: transparent;
+            border: 1px solid var(--text-gold);
+            color: var(--text-gold);
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .challenge-btn:hover {
+            background: rgba(199, 176, 116, 0.1);
+            box-shadow: 0 0 10px rgba(199, 176, 116, 0.2);
+        }
+
+        .challenge-text {
+            font-size: 1.4rem;
+            color: #fff;
+            min-height: 1.5em;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+            font-style: italic;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2em;
+            background-color: var(--dota-red-bright);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 800px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .player-card {
+                width: 90%;
+                max-width: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Dota 2 Duo Randomizer</h1>
+
+    <div class="main-controls">
+        <button class="btn-main" onclick="rollDuo()">ROLL DUO</button>
+    </div>
+
+    <div class="main-container">
+        <div class="player-card" id="card-vlad">
+            <h2 class="player-name">Влад</h2>
+            
+            <div class="filters" id="filters-vlad">
+                <label class="filter-item"><input type="checkbox" value="carry" checked> Carry</label>
+                <label class="filter-item"><input type="checkbox" value="mid" checked> Mid</label>
+                <label class="filter-item"><input type="checkbox" value="offlane" checked> Offlane</label>
+                <label class="filter-item"><input type="checkbox" value="support" checked> Support</label>
+            </div>
+
+            <div class="slot-window" id="window-vlad">
+                <div class="reel" id="reel-vlad">
+                    <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/pudge_vert.jpg" class="hero-img">
+                </div>
+                <div class="hero-name-overlay" id="name-vlad">???</div>
+            </div>
+
+            <button class="btn-reroll" onclick="rollSingle('vlad')">REROLL</button>
+        </div>
+
+        <div class="player-card" id="card-bogdan">
+            <h2 class="player-name">Богдан</h2>
+            
+            <div class="filters" id="filters-bogdan">
+                <label class="filter-item"><input type="checkbox" value="carry" checked> Carry</label>
+                <label class="filter-item"><input type="checkbox" value="mid" checked> Mid</label>
+                <label class="filter-item"><input type="checkbox" value="offlane" checked> Offlane</label>
+                <label class="filter-item"><input type="checkbox" value="support" checked> Support</label>
+            </div>
+
+            <div class="slot-window" id="window-bogdan">
+                <div class="reel" id="reel-bogdan">
+                    <img src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/invoker_vert.jpg" class="hero-img">
+                </div>
+                <div class="hero-name-overlay" id="name-bogdan">???</div>
+            </div>
+
+            <button class="btn-reroll" onclick="rollSingle('bogdan')">REROLL</button>
+        </div>
+    </div>
+
+    <div class="challenge-section">
+        <button class="challenge-btn" onclick="generateChallenge()">GENERATE GABEN'S CHALLENGE</button>
+        <div class="challenge-text" id="challenge-output">
+            <span id="type-text">Waiting for input...</span><span class="cursor"></span>
+        </div>
+    </div>
+
+<script>
+    // --- DATABASE WITH ROLES ---
+    // Roles: 'carry', 'mid', 'offlane', 'support'
+    const heroes = [
+        { id: 'abaddon', name: 'Abaddon', roles: ['offlane', 'support'] },
+        { id: 'alchemist', name: 'Alchemist', roles: ['carry', 'mid'] },
+        { id: 'antimage', name: 'Anti-Mage', roles: ['carry'] },
+        { id: 'axe', name: 'Axe', roles: ['offlane'] },
+        { id: 'bane', name: 'Bane', roles: ['support'] },
+        { id: 'bloodseeker', name: 'Bloodseeker', roles: ['carry', 'offlane'] },
+        { id: 'crystal_maiden', name: 'Crystal Maiden', roles: ['support'] },
+        { id: 'dazzle', name: 'Dazzle', roles: ['support', 'mid'] },
+        { id: 'earthshaker', name: 'Earthshaker', roles: ['support', 'offlane'] },
+        { id: 'faceless_void', name: 'Faceless Void', roles: ['carry'] },
+        { id: 'invoker', name: 'Invoker', roles: ['mid'] },
+        { id: 'juggernaut', name: 'Juggernaut', roles: ['carry'] },
+        { id: 'kunkka', name: 'Kunkka', roles: ['mid', 'offlane', 'support'] },
+        { id: 'lina', name: 'Lina', roles: ['mid', 'carry', 'support'] },
+        { id: 'lion', name: 'Lion', roles: ['support'] },
+        { id: 'magnataur', name: 'Magnus', roles: ['offlane', 'mid', 'support'] },
+        { id: 'mirana', name: 'Mirana', roles: ['support', 'carry'] },
+        { id: 'morphling', name: 'Morphling', roles: ['carry', 'mid'] },
+        { id: 'nevermore', name: 'Shadow Fiend', roles: ['mid', 'carry'] },
+        { id: 'ogre_magi', name: 'Ogre Magi', roles: ['support', 'offlane'] },
+        { id: 'omniknight', name: 'Omniknight', roles: ['support', 'offlane'] },
+        { id: 'phantom_assassin', name: 'Phantom Assassin', roles: ['carry'] },
+        { id: 'puck', name: 'Puck', roles: ['mid', 'offlane'] },
+        { id: 'pudge', name: 'Pudge', roles: ['support', 'offlane'] },
+        { id: 'queenofpain', name: 'Queen of Pain', roles: ['mid', 'carry'] },
+        { id: 'rubick', name: 'Rubick', roles: ['support', 'mid'] },
+        { id: 'sand_king', name: 'Sand King', roles: ['offlane'] },
+        { id: 'shadow_shaman', name: 'Shadow Shaman', roles: ['support'] },
+        { id: 'slardar', name: 'Slardar', roles: ['offlane', 'carry'] },
+        { id: 'sniper', name: 'Sniper', roles: ['mid', 'carry', 'support'] },
+        { id: 'spectre', name: 'Spectre', roles: ['carry'] },
+        { id: 'spirit_breaker', name: 'Spirit Breaker', roles: ['offlane', 'support'] },
+        { id: 'storm_spirit', name: 'Storm Spirit', roles: ['mid'] },
+        { id: 'sven', name: 'Sven', roles: ['carry', 'support'] },
+        { id: 'techies', name: 'Techies', roles: ['support', 'mid'] },
+        { id: 'tinker', name: 'Tinker', roles: ['mid', 'support'] },
+        { id: 'tiny', name: 'Tiny', roles: ['mid', 'support', 'carry'] },
+        { id: 'ursa', name: 'Ursa', roles: ['carry'] },
+        { id: 'vengefulspirit', name: 'Vengeful Spirit', roles: ['support', 'carry', 'offlane'] },
+        { id: 'windrunner', name: 'Windranger', roles: ['mid', 'support', 'offlane'] },
+        { id: 'witch_doctor', name: 'Witch Doctor', roles: ['support'] },
+        { id: 'zuus', name: 'Zeus', roles: ['mid', 'support'] }
+    ];
+
+    const challenges = [
+        "Пассивная агрессия (Никаких активных предметов)",
+        "Азбука (Все предметы должны начинаться на одну букву)",
+        "Терпила (Не качать ульту до 12 уровня)",
+        "Правая кнопка мыши (Играем без способностей, только удары)",
+        "Бомж-стайл (Не грейдить коричневый сапог всю игру)",
+        "Керри-Саппорт (Саппорт забирает фарм и собирается в урон)",
+        "Золотая лихорадка (Мидас первым слотом до сапога)",
+        "Пешеход (Запрещено использовать свитки телепортации)",
+        "Снайпер (Только таргетные предметы, никаких по области)",
+        "Стеклянная пушка (Максимум урона, 0 предметов на защиту)",
+        "Пацифист (Не добивать крипов первые 5 минут, только денаить)",
+        "Личный телохранитель (Всю игру ходить парой, не разделяться)",
+        "Дагон-Мастер (Дагон 5 уровня — главная цель игры)",
+        "Старый дед (Не использовать курьера, ходить в лавку ногами)",
+        "Вслепую (Не покупать и не ставить варды)",
+        "Метеор гейминг (Оба игрока обязаны собрать Meteor Hammer)",
+        "Киберспорт (Общаться только через колесо чата, без голоса)",
+        "Охотник за головами (Сделать килл на каждой линии до 15 минуты)",
+        "Жадность (Никаких байбеков, копим на Divine Rapier)",
+        "Лесник (Один из игроков не выходит из леса до 10 минуты)",
+        "Атрибут-мен (Сначала качаем 'плюсики', потом способности)"
+    ];
+
+    let isRollingVlad = false;
+    let isRollingBogdan = false;
+    let audioContext = null;
+
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playDrumSound() {
+        if (!audioContext) return;
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        
+        osc.frequency.setValueAtTime(150, audioContext.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        
+        osc.start();
+        osc.stop(audioContext.currentTime + 0.5);
+    }
+
+    function getHeroImage(heroId) {
+        return `https://cdn.cloudflare.steamstatic.com/apps/dota2/images/heroes/${heroId}_vert.jpg`;
+    }
+
+    function createHeroImgElement(heroId) {
+        const img = document.createElement('img');
+        img.src = getHeroImage(heroId);
+        img.className = 'hero-img';
+        img.onerror = function() {
+            this.src = 'https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/icons/hero_universal.png';
+            this.style.objectFit = 'contain';
+            this.style.padding = '50px';
+        };
+        return img;
+    }
+
+    // --- NEW LOGIC FOR ROLE FILTERING ---
+    function getFilteredHeroes(playerId) {
+        const filters = document.querySelectorAll(`#filters-${playerId} input:checked`);
+        const allowedRoles = Array.from(filters).map(input => input.value);
+        
+        // Если ничего не выбрано, возвращаем всех
+        if(allowedRoles.length === 0) return heroes;
+
+        // Фильтруем: оставляем героя, если хотя бы одна из его ролей совпадает с выбранными галочками
+        return heroes.filter(hero => {
+            return hero.roles.some(role => allowedRoles.includes(role));
+        });
+    }
+
+    function rollDuo() {
+        if(isRollingVlad || isRollingBogdan) return;
+        initAudio();
+        rollSlot('vlad');
+        setTimeout(() => rollSlot('bogdan'), 200); 
+    }
+
+    function rollSingle(playerId) {
+        const isRolling = playerId === 'vlad' ? isRollingVlad : isRollingBogdan;
+        if(isRolling) return;
+        initAudio();
+        rollSlot(playerId);
+    }
+
+    function rollSlot(playerId) {
+        if(playerId === 'vlad') isRollingVlad = true;
+        else isRollingBogdan = true;
+
+        const reel = document.getElementById(`reel-${playerId}`);
+        const windowEl = document.getElementById(`window-${playerId}`);
+        const nameOverlay = document.getElementById(`name-${playerId}`);
+        
+        windowEl.classList.remove('finished');
+        nameOverlay.style.opacity = '0';
+
+        const pool = getFilteredHeroes(playerId);
+        
+        if(pool.length === 0) {
+            alert("Выберите хотя бы одну роль!");
+            if(playerId === 'vlad') isRollingVlad = false;
+            else isRollingBogdan = false;
+            return;
+        }
+
+        const winner = pool[Math.floor(Math.random() * pool.length)];
+        const reelLength = 30;
+        const tileHeight = 272;
+        
+        reel.innerHTML = '';
+        
+        for(let i=0; i<reelLength; i++) {
+            // Для анимации тоже берем только героев из пула (чтобы не мелькали запрещенные)
+            // Или можно из общего списка для красоты. Возьмем из общего для разнообразия картинки.
+            const randomHero = heroes[Math.floor(Math.random() * heroes.length)];
+            const img = createHeroImgElement(randomHero.id);
+            reel.appendChild(img);
+        }
+
+        const winnerImg = createHeroImgElement(winner.id);
+        reel.appendChild(winnerImg);
+
+        reel.style.transition = 'none';
+        reel.style.top = '0px';
+        void reel.offsetWidth;
+
+        let drumInterval = setInterval(() => {
+            playDrumSound();
+        }, 150);
+
+        const totalHeight = reelLength * tileHeight;
+        reel.style.transition = 'top 3s cubic-bezier(0.15, 0.9, 0.3, 1)'; 
+        reel.style.top = `-${totalHeight}px`;
+
+        setTimeout(() => {
+            clearInterval(drumInterval);
+            playDrumSound(); 
+
+            reel.style.transition = 'none';
+            reel.innerHTML = '';
+            reel.appendChild(winnerImg);
+            reel.style.top = '0px';
+
+            nameOverlay.textContent = winner.name;
+            windowEl.classList.add('finished');
+
+            if(playerId === 'vlad') isRollingVlad = false;
+            else isRollingBogdan = false;
+
+        }, 3000);
+    }
+
+    let typeInterval;
+
+    function generateChallenge() {
+        initAudio();
+        const output = document.getElementById('type-text');
+        const challenge = challenges[Math.floor(Math.random() * challenges.length)];
+        
+        output.textContent = "";
+        clearInterval(typeInterval);
+        
+        let i = 0;
+        playDrumSound();
+        
+        typeInterval = setInterval(() => {
+            output.textContent += challenge.charAt(i);
+            i++;
+            if(i >= challenge.length) {
+                clearInterval(typeInterval);
+            }
+        }, 50);
+    }
+</script>
+</body>
+</html>
